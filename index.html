@@ -330,6 +330,8 @@
 
         let selectedFiles = [];
         let projects = [];
+        let countdownInterval;
+        let currentLiveUrl = '';
 
         // Real-time listener for projects
         const q = query(projectsCol, orderBy("timestamp", "desc"));
@@ -658,6 +660,8 @@
             const success = document.getElementById('modalSuccess');
             const error = document.getElementById('modalError');
 
+            if (countdownInterval) clearInterval(countdownInterval);
+
             modal.classList.remove('hidden');
             setTimeout(() => content.classList.remove('scale-95'), 10);
 
@@ -669,8 +673,32 @@
                 loading.classList.remove('hidden');
             } else if (type === 'success') {
                 success.classList.remove('hidden');
-                document.getElementById('liveLink').innerText = data;
-                document.getElementById('visitLink').href = data;
+                currentLiveUrl = data;
+                const liveLink = document.getElementById('liveLink');
+                const visitBtn = document.getElementById('visitLink');
+                const successMsg = success.querySelector('p');
+                
+                visitBtn.href = data;
+                visitBtn.classList.add('opacity-50', 'pointer-events-none');
+                if (successMsg) successMsg.innerText = "GitHub is processing your site. Please wait a moment.";
+                
+                let timeLeft = 120;
+                const updateTimer = () => {
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        liveLink.innerText = currentLiveUrl;
+                        visitBtn.classList.remove('opacity-50', 'pointer-events-none');
+                        if (successMsg) successMsg.innerText = "Your project is now live on the web.";
+                    } else {
+                        const mins = Math.floor(timeLeft / 60);
+                        const secs = timeLeft % 60;
+                        liveLink.innerText = `Wait for ${mins}:${secs < 10 ? '0' : ''}${secs} to go live...`;
+                        timeLeft--;
+                    }
+                };
+                
+                updateTimer();
+                countdownInterval = setInterval(updateTimer, 1000);
             } else if (type === 'error') {
                 error.classList.remove('hidden');
                 document.getElementById('errorText').innerText = data;
@@ -690,8 +718,8 @@
         }
 
         function copyLink() {
-            const link = document.getElementById('liveLink').innerText;
-            navigator.clipboard.writeText(link);
+            const linkToCopy = currentLiveUrl || document.getElementById('liveLink').innerText;
+            navigator.clipboard.writeText(linkToCopy);
             alert('Link copied to clipboard!');
         }
 
