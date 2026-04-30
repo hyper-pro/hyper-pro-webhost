@@ -682,7 +682,7 @@
                 visitBtn.classList.add('opacity-50', 'pointer-events-none');
                 if (successMsg) successMsg.innerText = "GitHub is processing your site. Please wait a moment.";
                 
-                let timeLeft = 120;
+                let timeLeft = 60;
                 const updateTimer = () => {
                     if (timeLeft <= 0) {
                         clearInterval(countdownInterval);
